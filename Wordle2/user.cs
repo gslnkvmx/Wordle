@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace wordle
+﻿namespace wordle
 {
     internal class User
     {
@@ -14,14 +8,14 @@ namespace wordle
         int word_count;
         string status_cd;
 
-        public User(int player_id, string name, string password, int word_count, string status_cd)
+        /* public User(int player_id, string name, string password, int word_count, string status_cd)
         {
             this.player_id = player_id;
             this.name = name ?? throw new ArgumentNullException(nameof(name));
             this.password = password ?? throw new ArgumentNullException(nameof(password));
             this.word_count = word_count;
             this.status_cd = status_cd ?? throw new ArgumentNullException(nameof(status_cd));
-        }
+        } */
 
         public int Player_id
         {
@@ -31,7 +25,10 @@ namespace wordle
         public string Name
         {
             get { return name; }
-            set { name = value; }
+            set
+            {
+                name = value;
+            }
         }
         public string Password
         {
@@ -47,6 +44,27 @@ namespace wordle
         {
             get { return status_cd; }
             set { status_cd = value; }
+        }
+
+        public void Register()
+        {
+            Console.WriteLine("Введите имя: ");
+            bool check;
+            do
+            {
+                Name = Console.ReadLine();
+                check = String.IsNullOrWhiteSpace(Name);
+                if (check) Console.WriteLine("Имя не должно быть пустым");
+            }
+            while (check);
+            Console.WriteLine("Введите пароль: ");
+            do
+            {
+                Password = Console.ReadLine();
+                check = String.IsNullOrWhiteSpace(Password);
+                if (check) Console.WriteLine("Пароль не должен быть пустым");
+            }
+            while (check);
         }
     }
 }

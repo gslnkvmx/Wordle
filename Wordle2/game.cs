@@ -25,29 +25,45 @@ namespace wordle
             }
             return rword.Equals(word);
         }
-
-        public int[] RightLetters(string word)
+        bool CheckForYellow(int index, string word)
         {
-            int[] letters_id = new int[word.Length];
+            int letterCount = 0;
+            int incorrectCountBeforeIndex = 0;
+            int correctCount = 0;
+            for (int i = 0; i < rword.Length; i++)
+            {
+                if (rword[i] == word[index])
+                {
+                    letterCount++;
+                }
+                if (word[i] == word[index] && rword[i] == word[index])
+                {
+                    correctCount++;
+                }
+                if (i < index && word[i] == word[index] && rword[i] != word[index])
+                {
+                    incorrectCountBeforeIndex++;
+                }
+            }
+            return letterCount - correctCount - incorrectCountBeforeIndex > 0;
+        }
+
+        public bool[] RightLetters(string word)
+        {
+            bool[] letters_id = new bool[word.Length];
             for (int i = 0; i < word.Length; i++)
             {
-                if (rword.Contains(word[i]))
-                {
-                    letters_id[i] = 1;
-                }
+                letters_id[i] = CheckForYellow(i, word);
             }
             return letters_id;
         }
 
-        public int[] RightPosLetters(string word)
+        public bool[] RightPosLetters(string word)
         {
-            int[] letters_id = new int[word.Length];
+            bool[] letters_id = new bool[word.Length];
             for (int i = 0; i < word.Length; i++)
             {
-                if (rword[i] == word[i])
-                {
-                    letters_id[i] = 1;
-                }
+                letters_id[i] = (rword[i] == word[i]);
             }
             return letters_id;
         }
