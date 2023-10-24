@@ -18,7 +18,6 @@ namespace wordle
         }
         static void Main(string[] args)
         {
-            
             string NL = Environment.NewLine; // shortcut
             string NORMAL = Console.IsOutputRedirected ? "" : "\x1b[39m";
             string GREEN = Console.IsOutputRedirected ? "" : "\x1b[92m";

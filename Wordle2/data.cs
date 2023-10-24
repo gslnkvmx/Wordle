@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace wordle
 {
@@ -24,6 +25,13 @@ namespace wordle
             //command.ExecuteNonQuery();
             //command.CommandText = "CREATE TABLE IF NOT EXISTS Progress(player_id INTEGER NOT NULL PRIMARY KEY, word_id INTEGER NOT NULL, word1_id INTEGER NOT NULL, word2_id INTEGER NOT NULL, word3_id INTEGER NOT NULL, word4_id INTEGER NOT NULL, word5_id INTEGER NOT NULL)";
             //command.ExecuteNonQuery();
+
+            /*string[] fileData = System.IO.File.ReadAllLines(@"G:\a_g\Wordle\Wordle2\words.txt");
+            for (int i = 0; i < fileData.Length; i++)
+            {
+                command.CommandText = $"INSERT INTO Words(word) VALUES ('{fileData[i]}')";
+                command.ExecuteNonQuery();
+            }*/
         }
 
         public bool Register(string name, string password)
@@ -49,14 +57,12 @@ namespace wordle
         {
             Random rnd = new Random();
 
-            //Получить случайное число (в диапазоне от 1 до 3)
+            // Получить случайное число (в диапазоне от 1 до 3)
             int id = rnd.Next(1, 3);
 
             command.CommandText =
      @"
-        SELECT word
-        FROM Words
-        WHERE word_id = $id
+        SELECT word FROM Words WHERE word_id = $id
     ";
             command.Parameters.AddWithValue("$id", id);
             string word = "not found";
