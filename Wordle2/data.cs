@@ -1,9 +1,4 @@
 ﻿using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace wordle
 {
@@ -11,7 +6,7 @@ namespace wordle
     {
         SqliteConnection connection;
         SqliteCommand command;
-        public Data() 
+        public Data()
         {
             connection = new SqliteConnection("Data Source=database.db");
             connection.Open();
@@ -49,8 +44,8 @@ namespace wordle
         {
             Random rnd = new Random();
 
-            //Получить случайное число (в диапазоне от 1 до 3)
-            int id = rnd.Next(1, 3);
+            //Получить случайное число (в диапазоне от 1 до 182)
+            int id = rnd.Next(1, 182);
 
             command.CommandText =
      @"
@@ -68,6 +63,20 @@ namespace wordle
                 }
             }
             return word;
+        }
+
+        public bool Check_word(string word)
+        {
+            command.CommandText = string.Format("SELECT word FROM Words WHERE word = '{0}'", word);
+            string? out_word = null;
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    out_word = reader.GetString(0);
+                }
+            }
+            return String.IsNullOrEmpty(out_word);
         }
     }
 }
