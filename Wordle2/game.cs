@@ -17,6 +17,9 @@ namespace wordle
             move = 1;
         }
 
+        public string Right_word { get { return rword; } set { rword = value; } }
+        public int Move { get { return move; } set {  move = value; } }
+
         public bool CheckWord(string word)
         {
             if (!rword.Equals(word))
@@ -67,9 +70,6 @@ namespace wordle
             }
             return letters_id;
         }
-
-
-        public int GetMove() { return move; }
 
     }
 }
