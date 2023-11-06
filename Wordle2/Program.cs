@@ -5,6 +5,7 @@
         static readonly string NORMAL = Console.IsOutputRedirected ? "" : "\x1b[39m";
         static readonly string GREEN = Console.IsOutputRedirected ? "" : "\x1b[92m";
         static readonly string YELLOW = Console.IsOutputRedirected ? "" : "\x1b[93m";
+
         public static void ClearCurrentConsoleLine(int row)
         {
             //currentLineCursor = Console.CursorTop;
@@ -96,11 +97,11 @@
 
             User user = new();
 
-            bool registrated = false;
             bool logined = false;
-            int choise = Menu();
+            bool registrated;
+            int choice = Menu();
 
-            switch (choise)
+            switch (choice)
             {
                 case (int)Options.Register: goto Register;
                 case (int)Options.Login: goto Login;
@@ -153,7 +154,7 @@
 
         Login:
             Console.Clear();
-            if (registrated) Console.WriteLine("Вход выполнен!");
+            if (logined) Console.WriteLine("Вход выполнен!");
             else
             {
                 do
@@ -232,10 +233,20 @@
 
         Leaderboard:
             Console.Clear();
-            int num_top = 5;
-            List<User> rate_list = db.Rating(num_top);
-            rate_list.ForEach(Console.WriteLine);
-            Console.WriteLine($"{GREEN}Ты -> {user}{NORMAL}");
+            bool intop = false;
+            List<User> rate_list = db.Rating();
+            for (int i = 0; i < rate_list.Count; i++)
+            {
+                if (rate_list[i].Name == user.Name)
+                {
+                    intop = true;
+                    Console.WriteLine($"{GREEN}Ты -> {user}{NORMAL}");
+                }
+                else Console.WriteLine(rate_list[i]);
+            }
+
+            if (!intop) Console.WriteLine($"=====================================\n" +
+                $"{GREEN}Ты -> {user}{NORMAL}");
             Console.WriteLine("1. Назад\n0. Выход");
             switch (GetValue(1))
             {
@@ -246,7 +257,7 @@
             }
 
         Game:
-            Game my_game = new();
+            Game my_game;
             Console.Clear();
             Console.WriteLine("Угадайте загаданное слово из ПЯТИ букв с шести попыток!\n" +
                 "После каждой попытки цвет букв будет менятся, чтобы показать какие буквы есть в загаданном слове.\n" +
@@ -275,8 +286,9 @@
             while (true & my_game.Move <= 6)
             {
                 string? word;
-                bool check = false;
                 int crow = Console.CursorTop;
+                bool check;
+                db.Set_user_data(user);
                 do
                 {
                     word = Console.ReadLine();
@@ -291,14 +303,14 @@
 
                 if (word == "0") { Console.Clear(); break; }
 
-                if (my_game.Move != 6) db.Add_progress(my_game.Move, word, user.Name);
+                if (my_game.Move != 6) db.Add_progress(my_game.Move, word!, user.Name);
 
                 Console.SetCursorPosition(0, Console.CursorTop - 1);
                 ClearCurrentConsoleLine(crow);
                 ClearCurrentConsoleLine(Console.CursorTop + 1);
                 Console.SetCursorPosition(0, Console.CursorTop - 1);
 
-                if (my_game.CheckWord(word))
+                if (my_game.CheckRword(word!))
                 {
                     Console.WriteLine($"{GREEN}{word}{NORMAL}, правильно!");
                     user.Word_count += 1;
@@ -308,12 +320,13 @@
                 }
 
                 else
-                    Color_word(my_game, word);
+                    Color_word(my_game, word!);
 
             }
             if (my_game.Move > 6)
             {
                 Console.WriteLine($"Загаданное слово: {my_game.Right_word}");
+                db.Clear_progress(user.Name);
                 user.Status_cd = "N";
             }
             db.Set_user_data(user);

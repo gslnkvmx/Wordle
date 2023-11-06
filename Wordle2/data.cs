@@ -6,6 +6,7 @@ namespace wordle
     {
         readonly SqliteConnection connection;
         readonly SqliteCommand command;
+        const int NUM_WORDS = 4165;
         public Data()
         {
             connection = new SqliteConnection("Data Source=database.db");
@@ -125,7 +126,7 @@ namespace wordle
             Random rnd = new();
 
             //Получить случайное число (в диапазоне от 1 до 40000)
-            int id = rnd.Next(1, 4000);
+            int id = rnd.Next(1, NUM_WORDS);
 
             command.CommandText = string.Format(" SELECT word FROM Words WHERE word_id = {0}", id);
             string word = "not found";
@@ -140,7 +141,7 @@ namespace wordle
             return word;
         }
 
-        public bool Check_word(string word)
+        public bool Check_word(string? word)
         {
             connection.Open();
             command.CommandText = string.Format("SELECT word FROM Words WHERE word = '{0}'", word);
@@ -156,7 +157,7 @@ namespace wordle
             return String.IsNullOrEmpty(out_word);
         }
 
-        public List<User> Rating(int top)
+        public List<User> Rating(int top = 5)
         {
             connection.Open();
             var rate_list = new List<User>();

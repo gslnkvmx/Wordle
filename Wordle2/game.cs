@@ -21,7 +21,7 @@
         public string Right_word { get { return rword; } set { rword = value; } }
         public int Move { get { return move; } set { move = value; } }
 
-        public bool CheckWord(string word)
+        public bool CheckRword(string word)
         {
             if (!rword.Equals(word))
             {
@@ -29,6 +29,12 @@
             }
             return rword.Equals(word);
         }
+        /// <summary>
+        /// Метод проверяет должна ли данная буква быть выделена желтым цветом
+        /// </summary>
+        /// <param name="index">индекс данной буквы в передаваемом слове</param>
+        /// <param name="word"></param>
+        /// <returns>True если буква должна быть выделена желтым</returns>
         bool CheckForYellow(int index, string word)
         {
             int letterCount = 0;

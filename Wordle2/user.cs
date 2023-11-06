@@ -69,28 +69,30 @@
         {
             Console.WriteLine("Введите имя: ");
             bool check;
+            string? s;
             do
             {
-                Name = Console.ReadLine();
-                check = String.IsNullOrWhiteSpace(Name);
+                s = Console.ReadLine();
+                check = String.IsNullOrWhiteSpace(s);
                 if (check) Console.WriteLine("Имя не должно быть пустым");
-
-
             }
             while (check);
+            Name = s!;
         }
 
         public void Set_Password()
         {
             bool check;
+            string? s;
             Console.WriteLine("Введите пароль: ");
             do
             {
-                Password = Console.ReadLine();
-                check = String.IsNullOrWhiteSpace(Password);
+                s = Console.ReadLine();
+                check = String.IsNullOrWhiteSpace(s);
                 if (check) Console.WriteLine("Пароль не должен быть пустым");
             }
             while (check);
+            Password = s!;
         }
 
         public void Register()
