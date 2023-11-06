@@ -1,20 +1,18 @@
 ﻿using Microsoft.Data.Sqlite;
-using System.Collections.Generic;
-using System.Windows.Input;
-using System.Xml.Linq;
 
 namespace wordle
 {
     internal class Data
     {
-        SqliteConnection connection;
-        SqliteCommand command;
+        readonly SqliteConnection connection;
+        readonly SqliteCommand command;
         public Data()
         {
             connection = new SqliteConnection("Data Source=database.db");
-            connection.Open();
-            command = new SqliteCommand();
-            command.Connection = connection;
+            command = new SqliteCommand
+            {
+                Connection = connection
+            };
             //command.CommandText = "CREATE TABLE IF NOT EXISTS Users(player_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT NOT NULL, password TEXT NOT NULL, word_count INTEGER NOT NULL, status_cd TEXT NOT NULL)";
             //command.ExecuteNonQuery();
             //command.CommandText = "CREATE TABLE IF NOT EXISTS Words(word_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, word TEXT NOT NULL)";
@@ -25,6 +23,7 @@ namespace wordle
 
         public User User_data(string name)
         {
+            connection.Open();
             command.CommandText = string.Format("SELECT * FROM Users WHERE name = '{0}'", name);
             int user_id = 0;
             string? user_name = null;
@@ -42,50 +41,71 @@ namespace wordle
                     user_status = reader.GetString(4);
                 }
             }
+            connection.Close();
 
             return new User(user_id,
-                            name: user_name,
-                            password: user_password,
-                            word_count: user_word_count,
-                            status_cd: user_status);
+                            name: user_name!,
+                            password: user_password!,
+                            word_count: user_word_count!,
+                            status_cd: user_status!);
+        }
+
+        public void Set_user_data(User user)
+        {
+            connection.Open();
+            command.CommandText = string.Format("UPDATE Users SET word_count = {0}, status_cd = '{1}' WHERE name = '{2}'",
+                user.Word_count, user.Status_cd, user.Name);
+            command.ExecuteNonQuery();
+            connection.Close();
         }
 
         public bool Check_name(string name)
         {
-            command.CommandText = string.Format("SELECT name FROM Users WHERE name = '{0}'", name);
-            string? out_name = null;
-            using (var reader = command.ExecuteReader())
+            connection.Open();
+            try
             {
-                while (reader.Read())
+                command.CommandText = string.Format("SELECT name FROM Users WHERE name = '{0}'", name);
+                string? out_name = null;
+                using (var reader = command.ExecuteReader())
                 {
-                    out_name = reader.GetString(0);
+                    while (reader.Read())
+                    {
+                        out_name = reader.GetString(0);
+                    }
                 }
+                connection.Close();
+                return !String.IsNullOrEmpty(out_name); //возвращает true если пользователь с именем name уже существует, иначе - false
             }
-
-            return String.IsNullOrEmpty(out_name);
+            catch (SqliteException)
+            {
+                connection.Close();
+                return false;
+            }
         }
 
         public bool Register(string name, string password)
         {
+            connection.Open();
             try
             {
-                command.CommandText = "INSERT INTO Users (name, password, status_cd) VALUES (:name, :password, :status)";
-                command.Parameters.AddWithValue("name", name);
-                command.Parameters.AddWithValue("password", password);
-                command.Parameters.AddWithValue("status", "N");
+                command.CommandText = string.Format("INSERT INTO Users (name, password) VALUES ('{0}', '{1}')", name, password);
                 command.ExecuteNonQuery();
-                Console.WriteLine("User added");
+                command.CommandText = string.Format("INSERT INTO Progress (name) VALUES ('{0}')", name);
+                command.ExecuteNonQuery();
+                connection.Close();
                 return true;
             }
-            catch (SqliteException ex)
+            catch (SqliteException)
             {
-                Console.WriteLine("User not added");
+                Console.WriteLine("Недопустимое имя или пароль!");
+                connection.Close();
                 return false;
             }
         }
 
         public bool Check_password(string name, string password)
         {
+            connection.Open();
             command.CommandText = string.Format("SELECT name FROM Users WHERE name = '{0}' and password = '{1}'", name, password);
             string? out_name = null;
             using (var reader = command.ExecuteReader())
@@ -95,24 +115,19 @@ namespace wordle
                     out_name = reader.GetString(0);
                 }
             }
-
-            return String.IsNullOrEmpty(out_name);
+            connection.Close();
+            return !String.IsNullOrEmpty(out_name);
         }
 
         public string Select_word()
         {
-            Random rnd = new Random();
+            connection.Open();
+            Random rnd = new();
 
-            //Получить случайное число (в диапазоне от 1 до 182)
-            int id = rnd.Next(1, 182);
+            //Получить случайное число (в диапазоне от 1 до 40000)
+            int id = rnd.Next(1, 4000);
 
-            command.CommandText =
-     @"
-        SELECT word
-        FROM Words
-        WHERE word_id = $id
-    ";
-            command.Parameters.AddWithValue("$id", id);
+            command.CommandText = string.Format(" SELECT word FROM Words WHERE word_id = {0}", id);
             string word = "not found";
             using (var reader = command.ExecuteReader())
             {
@@ -121,11 +136,13 @@ namespace wordle
                     word = reader.GetString(0);
                 }
             }
+            connection.Close();
             return word;
         }
 
         public bool Check_word(string word)
         {
+            connection.Open();
             command.CommandText = string.Format("SELECT word FROM Words WHERE word = '{0}'", word);
             string? out_word = null;
             using (var reader = command.ExecuteReader())
@@ -135,11 +152,13 @@ namespace wordle
                     out_word = reader.GetString(0);
                 }
             }
+            connection.Close();
             return String.IsNullOrEmpty(out_word);
         }
 
         public List<User> Rating(int top)
         {
+            connection.Open();
             var rate_list = new List<User>();
             command.CommandText = string.Format("SELECT name, word_count FROM Users ORDER BY word_count DESC LIMIT {0}", top);
             using (var reader = command.ExecuteReader())
@@ -149,7 +168,57 @@ namespace wordle
                     rate_list.Add(new User(reader.GetString(0), reader.GetInt32(1)));
                 }
             }
+            connection.Close();
             return rate_list;
+        }
+
+        public void Add_progress(int move, string word, string name)
+        {
+            connection.Open();
+            command.CommandText = string.Format("UPDATE Progress SET word{0} = '{1}' WHERE name = '{2}'", move, word, name);
+            command.ExecuteNonQuery();
+            connection.Close();
+        }
+
+        public void Add_rword(string rword, string name)
+        {
+            connection.Open();
+            command.CommandText = string.Format("UPDATE Progress SET rword = '{0}' WHERE name = '{1}'", rword, name);
+            command.ExecuteNonQuery();
+            connection.Close();
+        }
+
+        public List<string> Get_progress(string name)
+        {
+            connection.Open();
+            var progress = new List<string>();
+            int i = 1;
+            command.CommandText = string.Format("SELECT * FROM Progress WHERE name = '{0}'", name);
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    while (i <= 6)
+                    {
+                        if (reader[i].GetType() != typeof(DBNull)) { progress.Add(reader.GetString(i)); }
+                        else break;
+                        i += 1;
+                    }
+
+                }
+            }
+            connection.Close();
+            return progress;
+        }
+
+        public void Clear_progress(string name)
+        {
+            connection.Open();
+            command.CommandText = string.Format("DELETE FROM Progress WHERE name = '{0}'", name);
+            command.ExecuteNonQuery();
+            command.CommandText = string.Format("INSERT INTO Progress (name) VALUES ('{0}')", name);
+            command.ExecuteNonQuery();
+            connection.Close();
         }
     }
 }

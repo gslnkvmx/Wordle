@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace wordle
+﻿namespace wordle
 {
     internal class Program
     {
+        static readonly string NORMAL = Console.IsOutputRedirected ? "" : "\x1b[39m";
+        static readonly string GREEN = Console.IsOutputRedirected ? "" : "\x1b[92m";
+        static readonly string YELLOW = Console.IsOutputRedirected ? "" : "\x1b[93m";
         public static void ClearCurrentConsoleLine(int row)
         {
             //currentLineCursor = Console.CursorTop;
@@ -16,7 +16,7 @@ namespace wordle
         public static int Menu()
         {
             Console.WriteLine("------Меню------");
-            Console.WriteLine("1. Зарегестрироваться");
+            Console.WriteLine("1. Зарегистрироваться");
             Console.WriteLine("2. Войти");
             Console.WriteLine("0. Выход");
             Console.WriteLine("------------------------");
@@ -44,12 +44,35 @@ namespace wordle
             return GetValue(3);
         }
 
+        private static void Color_word(Game my_game, string word)
+        {
+            bool[] yellow_l = my_game.RightLetters(word);
+            bool[] green_l = my_game.RightPosLetters(word);
+
+            for (int i = 0; i < word.Length; i++)
+            {
+                if (green_l[i])
+                {
+                    Console.Write($"{GREEN}{word[i]}{NORMAL}");
+                }
+                else if (yellow_l[i])
+                {
+                    Console.Write($"{YELLOW}{word[i]}{NORMAL}");
+                }
+                else
+                {
+                    Console.Write(word[i]);
+                }
+            }
+            Console.WriteLine();
+        }
+
         public static int GetValue(int max)
         {
             Console.WriteLine("Чтобы выбрать, введите число:");
-            string input = Console.ReadLine();
+            var input = Console.ReadLine();
             bool success = Int32.TryParse(input, out int result);
-            if (success & result<=max & 0 <= result)
+            if (success & result <= max & 0 <= result)
             {
                 return result;
             }
@@ -67,21 +90,12 @@ namespace wordle
             Login
         }
 
-        static void Main(string[] args)
+        static void Main()
         {
+            Data db = new();
 
-            string NL = Environment.NewLine; // shortcut
-            string NORMAL = Console.IsOutputRedirected ? "" : "\x1b[39m";
-            string GREEN = Console.IsOutputRedirected ? "" : "\x1b[92m";
-            string YELLOW = Console.IsOutputRedirected ? "" : "\x1b[93m";
-            Data db = new Data();
+            User user = new();
 
-            string rword = db.Select_word();
-            Game my_game = new Game(rword);
-            User user = new User();
-
-            const int top = 0;
-            int y = top;
             bool registrated = false;
             bool logined = false;
             int choise = Menu();
@@ -92,26 +106,26 @@ namespace wordle
                 case (int)Options.Login: goto Login;
                 case (int)Options.Exit: goto Exit;
             }
-            
+
         Register:
             do
             {
                 Console.Clear();
                 user.Set_Name();
                 registrated = db.Check_name(user.Name);
-                if (!registrated)
+                if (registrated)
                 {
                     Console.WriteLine("Такой пользователь уже есть!");
-                    Console.WriteLine("1. Ввести другое имя    2. Войти    0. Выход");
+                    Console.WriteLine("1. Ввести другое имя\n2. Войти\n0. Выход");
                     switch (GetValue(2))
                     {
                         case 1:
+                            registrated = false;
                             break;
                         case 2:
                             goto Login;
                         case 0:
-                            System.Environment.Exit(1);
-                            break;
+                            goto Exit;
                     }
 
                 }
@@ -119,9 +133,22 @@ namespace wordle
                 {
                     user.Set_Password();
                     registrated = db.Register(user.Name, user.Password);
-                    logined = true;
+                    if (!registrated)
+                    {
+                        Console.WriteLine("1. Заново\n2. Войти\n0. Выход из игры");
+                        switch (GetValue(2))
+                        {
+                            case 1:
+                                break;
+                            case 2:
+                                goto Login;
+                            case 0:
+                                goto Exit;
+                        }
+                    }
                 }
             } while (!registrated);
+            logined = true;
             goto Login;
 
         Login:
@@ -134,10 +161,10 @@ namespace wordle
                     Console.Clear();
                     user.Set_Name();
                     logined = db.Check_name(user.Name);
-                    if (logined)
+                    if (!logined)
                     {
                         Console.WriteLine("Такого пользователя нет!");
-                        Console.WriteLine("1. Ввести другое имя    2. Регистрация    0. Выход");
+                        Console.WriteLine("1. Ввести другое имя\n2. Регистрация\n0. Выход");
                         switch (GetValue(2))
                         {
                             case 1:
@@ -145,8 +172,7 @@ namespace wordle
                             case 2:
                                 goto Register;
                             case 0:
-                                System.Environment.Exit(1);
-                                break;
+                                goto Exit;
                         }
 
                     }
@@ -154,10 +180,10 @@ namespace wordle
                     {
                         user.Set_Password();
                         logined = db.Check_password(user.Name, user.Password);
-                        if (logined)
+                        if (!logined)
                         {
                             Console.WriteLine("Неверный пароль, повторите попытку!");
-                            Console.WriteLine("1. Войти заново    2. Регистрация    0. Выход");
+                            Console.WriteLine("1. Войти заново\n2. Регистрация\n0. Выход");
                             switch (GetValue(2))
                             {
                                 case 1:
@@ -165,35 +191,96 @@ namespace wordle
                                 case 2:
                                     goto Register;
                                 case 0:
-                                    System.Environment.Exit(1);
-                                    break;
+                                    goto Exit;
                             }
                         }
                     }
-                } while (logined);
+                } while (!logined);
             }
-            goto Game;
+            goto Menu;
 
         Exit:
             System.Environment.Exit(1);
 
-        Game:
-            int ingame_choice = Game_Menu();
+        Menu:
+            Console.Clear();
+            user = db.User_data(user.Name);
+            //Console.WriteLine(user);
+            if (user.Status_cd == "N")
+            {
+                switch (Game_Menu())
+                {
+                    case 1: goto Game;
+                    case 2: goto Leaderboard;
+                    case 0: goto Exit;
+                }
+            }
+
+            else if (user.Status_cd == "UACT")
+            {
+                switch (Game_Menu_continue())
+                {
+                    case 1: goto Game;
+                    case 2:
+                        user.Status_cd = "N";
+                        db.Clear_progress(user.Name);
+                        goto Game;
+                    case 3: goto Leaderboard;
+                    case 0: goto Exit;
+                }
+            }
+
+        Leaderboard:
+            Console.Clear();
             int num_top = 5;
             List<User> rate_list = db.Rating(num_top);
             rate_list.ForEach(Console.WriteLine);
+            Console.WriteLine($"{GREEN}Ты -> {user}{NORMAL}");
+            Console.WriteLine("1. Назад\n0. Выход");
+            switch (GetValue(1))
+            {
+                case 1:
+                    goto Menu;
+                case 0:
+                    goto Exit;
+            }
 
-            user = db.User_data(user.Name); 
-            Console.WriteLine("Отгадайте слово");
+        Game:
+            Game my_game = new();
+            Console.Clear();
+            Console.WriteLine("Угадайте загаданное слово из ПЯТИ букв с шести попыток!\n" +
+                "После каждой попытки цвет букв будет менятся, чтобы показать какие буквы есть в загаданном слове.\n" +
+                "Буквы выделенные " + $"{YELLOW}желтым {NORMAL}" + "есть в заданном слове, но стоят не на том месте.\n" +
+                "Буквы выделенные " + $"{GREEN}зеленым {NORMAL}" + "есть в заданном слове, и стоят в правильном месте.\n" +
+                "\nЧтобы выйти введите 0!");
             //Console.WriteLine($"Загаданное слово: {rword}");
+
+            if (user.Status_cd == "UACT")
+            {
+                var progress = db.Get_progress(user.Name);
+                my_game = new Game(progress[0], progress.Count);
+                for (int i = 1; i < progress.Count; i++)
+                {
+                    Color_word(my_game, progress[i]);
+                }
+            }
+            else
+            {
+                string rword = db.Select_word();
+                my_game = new Game(rword);
+                user.Status_cd = "UACT";
+                db.Add_rword(rword, user.Name);
+            }
+
             while (true & my_game.Move <= 6)
             {
-                string word;
+                string? word;
                 bool check = false;
                 int crow = Console.CursorTop;
                 do
                 {
                     word = Console.ReadLine();
+                    if (word == "0") break;
                     check = db.Check_word(word);
                     if (check) Console.WriteLine("Такого слова нет, попробуйте другое!");
                     Console.SetCursorPosition(0, Console.CursorTop - 1);
@@ -202,40 +289,42 @@ namespace wordle
                 }
                 while (check);
 
+                if (word == "0") { Console.Clear(); break; }
+
+                if (my_game.Move != 6) db.Add_progress(my_game.Move, word, user.Name);
+
                 Console.SetCursorPosition(0, Console.CursorTop - 1);
                 ClearCurrentConsoleLine(crow);
                 ClearCurrentConsoleLine(Console.CursorTop + 1);
                 Console.SetCursorPosition(0, Console.CursorTop - 1);
+
                 if (my_game.CheckWord(word))
                 {
                     Console.WriteLine($"{GREEN}{word}{NORMAL}, правильно!");
+                    user.Word_count += 1;
+                    db.Clear_progress(user.Name);
+                    user.Status_cd = "N";
                     break;
                 }
 
                 else
-                {
-                    bool[] yellow_l = my_game.RightLetters(word);
-                    bool[] green_l = my_game.RightPosLetters(word);
+                    Color_word(my_game, word);
 
-                    for (int i = 0; i < word.Length; i++)
-                    {
-                        if (green_l[i])
-                        {
-                            Console.Write($"{GREEN}{word[i]}{NORMAL}");
-                        }
-                        else if (yellow_l[i])
-                        {
-                            Console.Write($"{YELLOW}{word[i]}{NORMAL}");
-                        }
-                        else
-                        {
-                            Console.Write(word[i]);
-                        }
-                    }
-                    Console.WriteLine();
-                }
             }
-            if (my_game.Move > 6) Console.WriteLine($"Загаданное слово: {my_game.Right_word}");
+            if (my_game.Move > 6)
+            {
+                Console.WriteLine($"Загаданное слово: {my_game.Right_word}");
+                user.Status_cd = "N";
+            }
+            db.Set_user_data(user);
+            Console.WriteLine("1. В меню\n0. Выход");
+            switch (GetValue(1))
+            {
+                case 1:
+                    goto Menu;
+                case 0:
+                    goto Exit;
+            }
         }
     }
 }

@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace wordle
+﻿namespace wordle
 {
     internal class Game
     {
         string rword;
-        int move;
+        int move = 0;
 
         public Game(string rword)
         {
@@ -17,8 +11,15 @@ namespace wordle
             move = 1;
         }
 
+        public Game(string rword, int move)
+        {
+            this.rword = rword ?? throw new ArgumentNullException(nameof(rword));
+            this.move = move;
+        }
+
+        public Game() { rword = "None"; }
         public string Right_word { get { return rword; } set { rword = value; } }
-        public int Move { get { return move; } set {  move = value; } }
+        public int Move { get { return move; } set { move = value; } }
 
         public bool CheckWord(string word)
         {

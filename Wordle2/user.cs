@@ -29,11 +29,11 @@
 
         public User(User user_data)
         {
-            this.player_id = user_data.player_id;
-            this.name = user_data.name ?? throw new ArgumentNullException(nameof(name));
-            this.password = user_data.password ?? throw new ArgumentNullException(nameof(password));
-            this.word_count = user_data.word_count;
-            this.status_cd = user_data.status_cd ?? throw new ArgumentNullException(nameof(status_cd));
+            player_id = user_data.player_id;
+            name = user_data.name ?? throw new ArgumentNullException(nameof(user_data));
+            password = user_data.password ?? throw new ArgumentNullException(nameof(user_data));
+            word_count = user_data.word_count;
+            status_cd = user_data.status_cd ?? throw new ArgumentNullException(nameof(user_data));
 
         }
 
@@ -45,13 +45,13 @@
 
         public string Name
         {
-            get { return name; }
+            get { return name!; }
             set { name = value; }
         }
 
         public string Password
         {
-            get { return password; }
+            get { return password!; }
             set { password = value; }
         }
         public int Word_count
@@ -74,6 +74,8 @@
                 Name = Console.ReadLine();
                 check = String.IsNullOrWhiteSpace(Name);
                 if (check) Console.WriteLine("Имя не должно быть пустым");
+
+
             }
             while (check);
         }
