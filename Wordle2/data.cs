@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using System.Reflection;
 
 namespace wordle
 {
@@ -14,12 +15,38 @@ namespace wordle
             {
                 Connection = connection
             };
-            //command.CommandText = "CREATE TABLE IF NOT EXISTS Users(player_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT NOT NULL, password TEXT NOT NULL, word_count INTEGER NOT NULL, status_cd TEXT NOT NULL)";
-            //command.ExecuteNonQuery();
-            //command.CommandText = "CREATE TABLE IF NOT EXISTS Words(word_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, word TEXT NOT NULL)";
-            //command.ExecuteNonQuery();
-            //command.CommandText = "CREATE TABLE IF NOT EXISTS Progress(player_id INTEGER NOT NULL PRIMARY KEY, word_id INTEGER NOT NULL, word1_id INTEGER NOT NULL, word2_id INTEGER NOT NULL, word3_id INTEGER NOT NULL, word4_id INTEGER NOT NULL, word5_id INTEGER NOT NULL)";
-            //command.ExecuteNonQuery();
+            connection.Open();
+            command.CommandText = "CREATE TABLE IF NOT EXISTS Progress (name TEXT NOT NULL PRIMARY KEY, rword TEXT, word1 TEXT, word2 TEXT, word3 TEXT, word4 TEXT, word5 TEXT)";
+            command.ExecuteNonQuery();
+            command.CommandText = "CREATE TABLE IF NOT EXISTS Users (player_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT NOT NULL, password TEXT NOT NULL, word_count INTEGER NOT NULL DEFAULT (0), status_cd TEXT NOT NULL DEFAULT N)";
+            command.ExecuteNonQuery();
+            command.CommandText = "CREATE TABLE IF NOT EXISTS Words(word_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, word TEXT NOT NULL)";
+            command.ExecuteNonQuery();
+
+            command.CommandText = "SELECT COUNT(*) FROM Words"; // проверка, загружены ли слова в таблицу
+            int ret = 1;
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    ret = reader.GetInt32(0);
+                }
+            }
+            if (ret == 0) // если нет слов, загружаем в таблицу
+            {
+                string[] fileData = System.IO.File.ReadAllLines(Path.Combine(System.AppContext.BaseDirectory, @"..\..\..\..\", @"Wordle2\words.txt"));
+                for (int i = 0; i < fileData.Length; i++)
+                {
+                    Console.Write($"Придумываем слова для игры... {(Int32)((100.0 / NUM_WORDS) * i)}%");
+                    command.CommandText = $"INSERT INTO Words(word) VALUES ('{fileData[i]}')";
+                    command.ExecuteNonQuery();
+                    Console.SetCursorPosition(0, Console.CursorTop);
+                    Console.Write(new String(' ', Console.BufferWidth));
+                    Console.SetCursorPosition(0, Console.CursorTop);
+                }
+            }
+
+            connection.Close();
         }
 
         public User User_data(string name)
