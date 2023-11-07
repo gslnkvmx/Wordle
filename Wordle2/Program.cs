@@ -8,7 +8,6 @@
 
         public static void ClearCurrentConsoleLine(int row)
         {
-            //currentLineCursor = Console.CursorTop;
             Console.SetCursorPosition(0, row);
             Console.Write(new string(' ', Console.BufferWidth));
             Console.SetCursorPosition(0, row);
