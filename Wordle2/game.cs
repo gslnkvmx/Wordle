@@ -35,7 +35,7 @@
         /// <param name="index">индекс данной буквы в передаваемом слове</param>
         /// <param name="word"></param>
         /// <returns>True если буква должна быть выделена желтым</returns>
-        bool CheckForYellow(int index, string word)
+        bool CheckForYellow(ref int index, string word)
         {
             int letterCount = 0;
             int incorrectCountBeforeIndex = 0;
@@ -55,15 +55,16 @@
                     incorrectCountBeforeIndex++;
                 }
             }
+            index++;
             return letterCount - correctCount - incorrectCountBeforeIndex > 0;
         }
 
         public bool[] RightLetters(string word)
         {
             bool[] letters_id = new bool[word.Length];
-            for (int i = 0; i < word.Length; i++)
+            for (int i = 0; i < word.Length;)
             {
-                letters_id[i] = CheckForYellow(i, word);
+                letters_id[i] = CheckForYellow(ref i, word);
             }
             return letters_id;
         }

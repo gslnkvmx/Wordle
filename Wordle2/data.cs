@@ -168,7 +168,7 @@ namespace wordle
             return word;
         }
 
-        public bool CheckWord(string? word)
+        public void CheckWord(string? word, out bool check)
         {
             connection.Open();
             command.CommandText = string.Format("SELECT word FROM Words WHERE word = '{0}'", word);
@@ -181,7 +181,7 @@ namespace wordle
                 }
             }
             connection.Close();
-            return String.IsNullOrEmpty(out_word);
+            check = String.IsNullOrEmpty(out_word);
         }
 
         public List<User> Rating(int top = 5)

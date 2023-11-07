@@ -43,7 +43,6 @@
             Console.WriteLine("------------------------");
             return GetValue(3);
         }
-
         private static void ColorWord(Game my_game, string word)
         {
             bool[] yellow_l = my_game.RightLetters(word);
@@ -292,7 +291,7 @@
                 {
                     word = Console.ReadLine();
                     if (word == "0") break;
-                    check = db.CheckWord(word);
+                    db.CheckWord(word, out check);
                     if (check) Console.WriteLine("Такого слова нет, попробуйте другое!");
                     Console.SetCursorPosition(0, Console.CursorTop - 1);
                     ClearCurrentConsoleLine(crow);
