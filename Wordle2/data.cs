@@ -7,7 +7,7 @@ namespace wordle
     {
         readonly SqliteConnection connection;
         readonly SqliteCommand command;
-        const int NUM_WORDS = 4165;
+        const int NumWords = 4165;
         public Data()
         {
             connection = new SqliteConnection("Data Source=database.db");
@@ -37,7 +37,7 @@ namespace wordle
                 string[] fileData = System.IO.File.ReadAllLines(Path.Combine(System.AppContext.BaseDirectory, @"..\..\..\..\", @"Wordle2\words.txt"));
                 for (int i = 0; i < fileData.Length; i++)
                 {
-                    Console.Write($"Придумываем слова для игры... {(Int32)((100.0 / NUM_WORDS) * i)}%");
+                    Console.Write($"Придумываем слова для игры... {(Int32)((100.0 / NumWords) * i)}%");
                     command.CommandText = $"INSERT INTO Words(word) VALUES ('{fileData[i]}')";
                     command.ExecuteNonQuery();
                     Console.SetCursorPosition(0, Console.CursorTop);
@@ -49,7 +49,7 @@ namespace wordle
             connection.Close();
         }
 
-        public User User_data(string name)
+        public User UserData(string name)
         {
             connection.Open();
             command.CommandText = string.Format("SELECT * FROM Users WHERE name = '{0}'", name);
@@ -78,7 +78,7 @@ namespace wordle
                             status_cd: user_status!);
         }
 
-        public void Set_user_data(User user)
+        public void SetUserData(User user)
         {
             connection.Open();
             command.CommandText = string.Format("UPDATE Users SET word_count = {0}, status_cd = '{1}' WHERE name = '{2}'",
@@ -87,7 +87,7 @@ namespace wordle
             connection.Close();
         }
 
-        public bool Check_name(string name)
+        public bool CheckName(string name)
         {
             connection.Open();
             try
@@ -131,7 +131,7 @@ namespace wordle
             }
         }
 
-        public bool Check_password(string name, string password)
+        public bool CheckPassword(string name, string password)
         {
             connection.Open();
             command.CommandText = string.Format("SELECT name FROM Users WHERE name = '{0}' and password = '{1}'", name, password);
@@ -147,13 +147,13 @@ namespace wordle
             return !String.IsNullOrEmpty(out_name);
         }
 
-        public string Select_word()
+        public string SelectWord()
         {
             connection.Open();
             Random rnd = new();
 
-            //Получить случайное число (в диапазоне от 1 до 40000)
-            int id = rnd.Next(1, NUM_WORDS);
+            //Получить случайное число (в диапазоне от 1 до 4165)
+            int id = rnd.Next(1, NumWords);
 
             command.CommandText = string.Format(" SELECT word FROM Words WHERE word_id = {0}", id);
             string word = "not found";
@@ -168,7 +168,7 @@ namespace wordle
             return word;
         }
 
-        public bool Check_word(string? word)
+        public bool CheckWord(string? word)
         {
             connection.Open();
             command.CommandText = string.Format("SELECT word FROM Words WHERE word = '{0}'", word);
@@ -200,7 +200,7 @@ namespace wordle
             return rate_list;
         }
 
-        public void Add_progress(int move, string word, string name)
+        public void AddProgress(int move, string word, string name)
         {
             connection.Open();
             command.CommandText = string.Format("UPDATE Progress SET word{0} = '{1}' WHERE name = '{2}'", move, word, name);
@@ -208,7 +208,7 @@ namespace wordle
             connection.Close();
         }
 
-        public void Add_rword(string rword, string name)
+        public void AddRword(string rword, string name)
         {
             connection.Open();
             command.CommandText = string.Format("UPDATE Progress SET rword = '{0}' WHERE name = '{1}'", rword, name);
@@ -216,7 +216,7 @@ namespace wordle
             connection.Close();
         }
 
-        public List<string> Get_progress(string name)
+        public List<string> GetProgress(string name)
         {
             connection.Open();
             var progress = new List<string>();
@@ -239,7 +239,7 @@ namespace wordle
             return progress;
         }
 
-        public void Clear_progress(string name)
+        public void ClearProgress(string name)
         {
             connection.Open();
             command.CommandText = string.Format("DELETE FROM Progress WHERE name = '{0}'", name);

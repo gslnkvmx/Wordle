@@ -65,7 +65,7 @@
             set { status_cd = value; }
         }
 
-        public void Set_Name()
+        public void SetName()
         {
             Console.WriteLine("Введите имя: ");
             bool check;
@@ -80,7 +80,7 @@
             Name = s!;
         }
 
-        public void Set_Password()
+        public void SetPassword()
         {
             bool check;
             string? s;

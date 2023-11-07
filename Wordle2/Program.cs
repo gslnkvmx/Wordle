@@ -24,7 +24,7 @@
             return GetValue(2);
         }
 
-        public static int Game_Menu()
+        public static int GameMenu()
         {
             Console.WriteLine("------Меню------");
             Console.WriteLine("1. Начать игру");
@@ -34,7 +34,7 @@
             return GetValue(2);
         }
 
-        public static int Game_Menu_continue()
+        public static int GameMenuContinue()
         {
             Console.WriteLine("------Меню------");
             Console.WriteLine("1. Продолжить игру");
@@ -45,7 +45,7 @@
             return GetValue(3);
         }
 
-        private static void Color_word(Game my_game, string word)
+        private static void ColorWord(Game my_game, string word)
         {
             bool[] yellow_l = my_game.RightLetters(word);
             bool[] green_l = my_game.RightPosLetters(word);
@@ -112,8 +112,8 @@
             do
             {
                 Console.Clear();
-                user.Set_Name();
-                registrated = db.Check_name(user.Name);
+                user.SetName();
+                registrated = db.CheckName(user.Name);
                 if (registrated)
                 {
                     Console.WriteLine("Такой пользователь уже есть!");
@@ -132,7 +132,7 @@
                 }
                 else
                 {
-                    user.Set_Password();
+                    user.SetPassword();
                     registrated = db.Register(user.Name, user.Password);
                     if (!registrated)
                     {
@@ -160,8 +160,8 @@
                 do
                 {
                     Console.Clear();
-                    user.Set_Name();
-                    logined = db.Check_name(user.Name);
+                    user.SetName();
+                    logined = db.CheckName(user.Name);
                     if (!logined)
                     {
                         Console.WriteLine("Такого пользователя нет!");
@@ -179,8 +179,8 @@
                     }
                     else
                     {
-                        user.Set_Password();
-                        logined = db.Check_password(user.Name, user.Password);
+                        user.SetPassword();
+                        logined = db.CheckPassword(user.Name, user.Password);
                         if (!logined)
                         {
                             Console.WriteLine("Неверный пароль, повторите попытку!");
@@ -205,11 +205,11 @@
 
         Menu:
             Console.Clear();
-            user = db.User_data(user.Name);
+            user = db.UserData(user.Name);
             //Console.WriteLine(user);
             if (user.Status_cd == "N")
             {
-                switch (Game_Menu())
+                switch (GameMenu())
                 {
                     case 1: goto Game;
                     case 2: goto Leaderboard;
@@ -219,12 +219,12 @@
 
             else if (user.Status_cd == "UACT")
             {
-                switch (Game_Menu_continue())
+                switch (GameMenuContinue())
                 {
                     case 1: goto Game;
                     case 2:
                         user.Status_cd = "N";
-                        db.Clear_progress(user.Name);
+                        db.ClearProgress(user.Name);
                         goto Game;
                     case 3: goto Leaderboard;
                     case 0: goto Exit;
@@ -268,19 +268,19 @@
 
             if (user.Status_cd == "UACT")
             {
-                var progress = db.Get_progress(user.Name);
+                var progress = db.GetProgress(user.Name);
                 my_game = new Game(progress[0], progress.Count);
                 for (int i = 1; i < progress.Count; i++)
                 {
-                    Color_word(my_game, progress[i]);
+                    ColorWord(my_game, progress[i]);
                 }
             }
             else
             {
-                string rword = db.Select_word();
+                string rword = db.SelectWord();
                 my_game = new Game(rword);
                 user.Status_cd = "UACT";
-                db.Add_rword(rword, user.Name);
+                db.AddRword(rword, user.Name);
             }
 
             while (true & my_game.Move <= 6)
@@ -288,12 +288,12 @@
                 string? word;
                 int crow = Console.CursorTop;
                 bool check;
-                db.Set_user_data(user);
+                db.SetUserData(user);
                 do
                 {
                     word = Console.ReadLine();
                     if (word == "0") break;
-                    check = db.Check_word(word);
+                    check = db.CheckWord(word);
                     if (check) Console.WriteLine("Такого слова нет, попробуйте другое!");
                     Console.SetCursorPosition(0, Console.CursorTop - 1);
                     ClearCurrentConsoleLine(crow);
@@ -303,7 +303,7 @@
 
                 if (word == "0") { Console.Clear(); break; }
 
-                if (my_game.Move != 6) db.Add_progress(my_game.Move, word!, user.Name);
+                if (my_game.Move != 6) db.AddProgress(my_game.Move, word!, user.Name);
 
                 Console.SetCursorPosition(0, Console.CursorTop - 1);
                 ClearCurrentConsoleLine(crow);
@@ -314,22 +314,22 @@
                 {
                     Console.WriteLine($"{GREEN}{word}{NORMAL}, правильно!");
                     user.Word_count += 1;
-                    db.Clear_progress(user.Name);
+                    db.ClearProgress(user.Name);
                     user.Status_cd = "N";
                     break;
                 }
 
                 else
-                    Color_word(my_game, word!);
+                    ColorWord(my_game, word!);
 
             }
             if (my_game.Move > 6)
             {
                 Console.WriteLine($"Загаданное слово: {my_game.Right_word}");
-                db.Clear_progress(user.Name);
+                db.ClearProgress(user.Name);
                 user.Status_cd = "N";
             }
-            db.Set_user_data(user);
+            db.SetUserData(user);
             Console.WriteLine("1. В меню\n0. Выход");
             switch (GetValue(1))
             {
